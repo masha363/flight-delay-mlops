@@ -18,6 +18,8 @@ fi
 
 echo ">>> $LABEL: workers=$WORKERS queue=$TASKS_QUEUE max_length=$QUEUE_MAX_LENGTH prefetch=$PREFETCH_COUNT duration=${DURATION}s"
 rm -rf "experiments/results/$LABEL"
+docker compose exec -T db psql -U postgres -d flight_delay -q \
+  -c "DELETE FROM tasks WHERE source = '$LABEL'" >/dev/null 2>&1 || true
 mkdir -p "experiments/results/$LABEL"
 
 docker compose up -d --scale worker="$WORKERS" worker

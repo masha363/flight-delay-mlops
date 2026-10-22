@@ -47,6 +47,7 @@ state = WorkerState()
 broker = RabbitBroker(
     settings.rabbit_url,
     graceful_timeout=settings.graceful_timeout_sec,
+    default_channel=Channel(prefetch_count=settings.prefetch_count or None),
 )
 
 
@@ -65,7 +66,6 @@ def parse_task(body: Any) -> TaskMessage:
 
 @broker.subscriber(
     tasks_queue(),
-    channel=Channel(prefetch_count=settings.prefetch_count or None),
     ack_policy=AckPolicy.REJECT_ON_ERROR,
 )
 async def handle_task(body: Any, logger: Logger) -> None:

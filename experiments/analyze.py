@@ -88,7 +88,7 @@ def summarize(run: dict, start: float, end: float) -> dict:
         "глубина очереди средн": round(rb["messages"].mean(), 1) if len(rb) else 0,
         "время задачи (e2e) средн, с": round(e2e.mean(), 2),
         "время задачи (e2e) p95, с": round(e2e.quantile(0.95), 2),
-        "время inference средн, с": round(inference.mean(), 3),
+        "время в воркере средн, с": round(inference.mean(), 3),
         "отказов брокера (nack)": int(
             src_win["rejected"].iloc[-1] - src_win["rejected"].iloc[0]
         ),
@@ -120,7 +120,8 @@ def plot_run(run: dict, scale_at: float | None) -> Path:
         w_rate = rate(w, "processed", t0)
         ax.plot(w_rate["t"], w_rate["rate"], label=f"{name} (обработано)", alpha=0.7)
     ax.set_title("Скорость, задач/с (окно 5 с)")
-    ax.set_yscale("symlog", linthresh=50)
+    if src_rate["rate"].max() > 200:
+        ax.set_yscale("log")
 
     ax = axes[1][0]
     ax.plot(run["source"]["ts"] - t0, run["source"]["rss_mb"], label="источник")
@@ -141,7 +142,7 @@ def plot_run(run: dict, scale_at: float | None) -> Path:
         tasks["finished"] - t0,
         tasks["finished"] - tasks["started"],
         s=2,
-        label="inference",
+        label="в воркере (получение -> запись в БД)",
     )
     ax.set_title("Время выполнения задачи, с")
     ax.set_yscale("log")
